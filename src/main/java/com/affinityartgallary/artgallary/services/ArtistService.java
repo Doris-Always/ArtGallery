@@ -1,8 +1,11 @@
 package com.affinityartgallary.artgallary.services;
 
+import com.affinityartgallary.artgallary.data.model.ArtWork;
 import com.affinityartgallary.artgallary.data.model.Artist;
 import com.affinityartgallary.artgallary.dto.request.AddArtistRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateArtistRequest;
+
+import java.util.List;
 
 public interface ArtistService {
 
@@ -14,4 +17,8 @@ public interface ArtistService {
 
     void removeArtistByName(String artistName);
     Artist getArtistByName(String artistName);
+
+    Artist saveArtist(Artist existingArtist);
+
+    List<ArtWork> getAllArtWorkByArtistId(String artistId);
 }
