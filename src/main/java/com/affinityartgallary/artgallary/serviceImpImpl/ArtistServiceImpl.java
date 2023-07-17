@@ -73,6 +73,7 @@ public class ArtistServiceImpl implements ArtistService {
        return listOfArtWorks;
     }
 
+
     @Override
     public void removeArtistByName(String artistName) {
         Artist artist = artistRepository.findByName(artistName);

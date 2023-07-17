@@ -21,4 +21,6 @@ public interface ArtistService {
     Artist saveArtist(Artist existingArtist);
 
     List<ArtWork> getAllArtWorkByArtistId(String artistId);
+
+
 }

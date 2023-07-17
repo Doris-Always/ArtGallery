@@ -5,6 +5,7 @@ import com.affinityartgallary.artgallary.data.model.Artist;
 import com.affinityartgallary.artgallary.dto.request.AddArtWorkRequest;
 import com.affinityartgallary.artgallary.dto.request.AddArtistRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateArtWorkRequest;
+import com.affinityartgallary.artgallary.exception.ArtWorkAlreadyExistException;
 import com.affinityartgallary.artgallary.services.ArtWorkService;
 import com.affinityartgallary.artgallary.services.ArtistService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class ArtWorkServiceTest {
@@ -43,12 +45,17 @@ public class ArtWorkServiceTest {
         addArtistRequest.setImageUrl("www.cloudinary.com");
 
         updateArtWorkRequest = new UpdateArtWorkRequest();
+        updateArtWorkRequest.setTitle("Birthdays are beautiful,2021");
+        updateArtWorkRequest.setMedium("Acrylic");
+        updateArtWorkRequest.setDimension("112  X 345 ");
+        updateArtWorkRequest.setImageUrl("www.cloudinary.com");
+
 
 
     }
 
     @Test
-    void testThatArtWorkCanBeAddedToAnArtist(){
+    void testThatArtWorkCanBeAddedToAnArtist() throws ArtWorkAlreadyExistException {
         artistService.addArtist(addArtistRequest);
         Artist foundArtist = artistService.getArtistByName("Ben");
         var artwork = artWorkService.addArtWorkToArtist(foundArtist.getName(),addArtWorkRequest);
@@ -57,7 +64,20 @@ public class ArtWorkServiceTest {
 
     }
     @Test
-    void testThatICanFindArtworkByArtistId(){
+    void testArtWorkCanOnlyBeAddedOnce() throws ArtWorkAlreadyExistException {
+        artistService.addArtist(addArtistRequest);
+        Artist foundArtist = artistService.getArtistByName("Ben");
+        var artwork = artWorkService.addArtWorkToArtist(foundArtist.getName(),addArtWorkRequest);
+        assertEquals(artwork.getArtistId(),foundArtist.getId());
+        assertThrows(ArtWorkAlreadyExistException.class,()-> artWorkService
+                .addArtWorkToArtist(foundArtist.getName(),addArtWorkRequest));
+        List<ArtWork> artWorks= artistService.getAllArtWorkByArtistId(foundArtist.getId());
+        assertEquals(1,artWorks.size());
+
+
+    }
+    @Test
+    void testThatICanFindArtworkByArtistId() throws ArtWorkAlreadyExistException {
         artistService.addArtist(addArtistRequest);
         Artist foundArtist = artistService.getArtistByName("Ben");
         ArtWork artwork = artWorkService.addArtWorkToArtist(foundArtist.getName(),addArtWorkRequest);
@@ -76,7 +96,22 @@ public class ArtWorkServiceTest {
 //        assertEquals(id,artwork.getId());
 //    }
     @Test
-    void testThatArtWorkCanBeUpdated(){
+    void testThatArtWorkCanBeUpdated() throws ArtWorkAlreadyExistException {
+        artistService.addArtist(addArtistRequest);
+        Artist foundArtist = artistService.getArtistByName("Ben");
+        ArtWork artwork = artWorkService.addArtWorkToArtist(foundArtist.getName(),addArtWorkRequest);
+        ArtWork updatedArtwork = artWorkService.updateArtWork(artwork.getId(),updateArtWorkRequest);
+        assertEquals(updatedArtwork.getTitle(),"Birthdays are beautiful,2021");
+    }
+    @Test
+    void testThatArtWorkCanBeRemoved() throws ArtWorkAlreadyExistException {
+        artistService.addArtist(addArtistRequest);
+        Artist foundArtist = artistService.getArtistByName("Ben");
+        ArtWork artwork = artWorkService.addArtWorkToArtist(foundArtist.getName(),addArtWorkRequest);
+        artWorkService.removeArtWork(artwork.getId());
+        List<ArtWork> artWorks= artistService.getAllArtWorkByArtistId(foundArtist.getId());
+        assertEquals(0,artWorks.size());
 
     }
+
 }

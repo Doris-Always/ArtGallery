@@ -1,6 +1,7 @@
 package com.affinityartgallary.artgallary.controller;
 
 import com.affinityartgallary.artgallary.dto.request.AddArtWorkRequest;
+import com.affinityartgallary.artgallary.exception.ArtWorkAlreadyExistException;
 import com.affinityartgallary.artgallary.services.ArtWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,7 @@ public class ArtWorkController {
     ArtWorkService artWorkService;
 
     @PostMapping("/addArtWork/{artistName}")
-    public ResponseEntity<?> addArtWork(@PathVariable String artistName, @RequestBody AddArtWorkRequest addArtWorkRequest){
+    public ResponseEntity<?> addArtWork(@PathVariable String artistName, @RequestBody AddArtWorkRequest addArtWorkRequest) throws ArtWorkAlreadyExistException {
          return new ResponseEntity<>(artWorkService.addArtWorkToArtist(artistName,addArtWorkRequest), HttpStatus.OK);
     }
 
