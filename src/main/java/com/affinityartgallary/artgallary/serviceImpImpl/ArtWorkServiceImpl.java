@@ -65,14 +65,9 @@ public class ArtWorkServiceImpl implements ArtWorkService {
     @Override
     public ArtWork updateArtWork(String artWorkId,UpdateArtWorkRequest updateArtWorkRequest) {
         ArtWork existingArtWork = artWorkRepository.findById(artWorkId).orElseThrow(()->new ArtWorkNotFoundException("artwork not found"));
-        existingArtWork.setTitle(updateArtWorkRequest.getTitle());
-        existingArtWork.setDimension(updateArtWorkRequest.getDimension());
-        existingArtWork.setMedium(updateArtWorkRequest.getMedium());
-        existingArtWork.setImageUrl(updateArtWorkRequest.getImageUrl());
+        update(updateArtWorkRequest, existingArtWork);
         ArtWork updatedArtwork = artWorkRepository.save(existingArtWork);
-
         updateArtWorkInArtist(updatedArtwork.getId(), updatedArtwork.getArtistId(), updateArtWorkRequest);
-
         return updatedArtwork;
     }
 
@@ -83,10 +78,7 @@ public class ArtWorkServiceImpl implements ArtWorkService {
 
        for(ArtWork artWork: artWorks){
            if (artWork.getId().equals(artWorkId)){
-               artWork.setTitle(updateArtWorkRequest.getTitle());
-               artWork.setDimension(updateArtWorkRequest.getDimension());
-               artWork.setMedium(updateArtWorkRequest.getMedium());
-               artWork.setImageUrl(updateArtWorkRequest.getImageUrl());
+               update(updateArtWorkRequest, artWork);
            }
        }
 
@@ -94,6 +86,14 @@ public class ArtWorkServiceImpl implements ArtWorkService {
 
 
     }
+
+    private void update(UpdateArtWorkRequest updateArtWorkRequest, ArtWork artWork) {
+        artWork.setTitle(updateArtWorkRequest.getTitle() != null ? updateArtWorkRequest.getTitle() : artWork.getTitle());
+        artWork.setDimension(updateArtWorkRequest.getDimension() != null ? updateArtWorkRequest.getDimension() : artWork.getDimension());
+        artWork.setMedium(updateArtWorkRequest.getMedium() != null ? updateArtWorkRequest.getMedium() : artWork.getMedium());
+        artWork.setImageUrl(updateArtWorkRequest.getImageUrl() != null ? updateArtWorkRequest.getImageUrl() : artWork.getImageUrl());
+    }
+
     @Override
     public void removeArtWork(String artWorkId) {
         ArtWork existingArtWork = artWorkRepository.findById(artWorkId).orElseThrow(()->new ArtWorkNotFoundException("artwork not found"));
