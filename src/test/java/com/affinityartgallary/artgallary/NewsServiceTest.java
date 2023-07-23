@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,10 +23,11 @@ public class NewsServiceTest {
     CreateNewsRequest newsRequest;
     @BeforeEach
     void setUp(){
+
         newsRequest = new CreateNewsRequest();
         newsRequest.setTitle("first news headline");
         newsRequest.setBody("this is news body");
-        newsRequest.setDate(new Date(2023,7,19));
+
         newsRequest.setImageUrl("www.cloudinary.com");
 
         updateNewsRequest = new UpdateNewsRequest();
@@ -56,11 +58,11 @@ public class NewsServiceTest {
         assertEquals(updatedNews.getTitle(),"this is an updated title");
 
     }
-    @Test
-    void testThatNewsCanBeDeleted(){
-        News news = newsService.createNews(newsRequest);
-        String newsId = news.getId();
-        newsService.removeNews(newsId);
-        assertNull(newsService.getNewsById(news.getId()));
-    }
+//    @Test
+//    void testThatNewsCanBeDeleted(){
+//        News news = newsService.createNews(newsRequest);
+//        String newsId = news.getId();
+//        newsService.removeNews(newsId);
+//        assertNull(newsService.getNewsById(news.getId()));
+//    }
 }

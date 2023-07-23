@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("api/v1/exhibition")
 public class ExhibitionController {
@@ -21,19 +23,17 @@ public class ExhibitionController {
     ArtistService artistService;
 
     @PostMapping("/addExhibition/{artistId}")
-    public ResponseEntity<?> addExhibition(@PathVariable("artistId") String artistId, @RequestBody AddExhibitionRequest addExhibitionRequest){
-        var foundArtistId = artistService.getArtistById(artistId);
-        return new ResponseEntity<>(exhibitionService.addExhibition(foundArtistId.getId(),addExhibitionRequest), HttpStatus.OK);
+    public ResponseEntity<?> addExhibition(@PathVariable("artistId") String artistId, @ModelAttribute AddExhibitionRequest addExhibitionRequest) throws IOException {
+        return new ResponseEntity<>(exhibitionService.addExhibition(artistId,addExhibitionRequest), HttpStatus.OK);
     }
 
     @GetMapping("/getExhibition/{artistId}")
     public ResponseEntity<?> getExhibitionByArtistId(@PathVariable String artistId){
-        var foundArtist = artistService.getArtistById(artistId);
-        return new ResponseEntity<>(exhibitionService.getExhibitionByArtistId(foundArtist.getId()),HttpStatus.OK);
+        return new ResponseEntity<>(exhibitionService.getExhibitionByArtistId(artistId),HttpStatus.OK);
     }
 
     @PatchMapping("/updateExhibition/{id}")
-    public ResponseEntity<?> updateExhibition(@PathVariable ("id")String exhibitionId, @RequestBody UpdateExhibitionRequest updateExhibitionRequest){
+    public ResponseEntity<?> updateExhibition(@PathVariable ("id")String exhibitionId, @ModelAttribute UpdateExhibitionRequest updateExhibitionRequest) throws IOException {
         return new ResponseEntity<>(exhibitionService.updateExhibition(exhibitionId,updateExhibitionRequest),HttpStatus.OK);
     }
     @DeleteMapping("/removeExhibition/{id}")

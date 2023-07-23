@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("api/v1/news")
 public class NewsController {
@@ -17,7 +19,7 @@ public class NewsController {
     NewsService newsService;
 
     @PostMapping("/createNews")
-    public ResponseEntity<?> createNews(@RequestBody CreateNewsRequest newsRequest){
+    public ResponseEntity<?> createNews(@ModelAttribute CreateNewsRequest newsRequest) throws IOException {
         return new ResponseEntity<>(newsService.createNews(newsRequest), HttpStatus.OK);
     }
     @GetMapping("/{newsId}")
@@ -26,7 +28,7 @@ public class NewsController {
     }
 
     @PatchMapping("/updateNews/{newsId}")
-    public ResponseEntity<?> updateArtWork(@PathVariable String newsId, UpdateNewsRequest updateNewsRequest){
+    public ResponseEntity<?> updateArtWork(@PathVariable String newsId,@ModelAttribute UpdateNewsRequest updateNewsRequest) throws IOException {
         return new ResponseEntity<>(newsService.updateNews(newsId,updateNewsRequest),HttpStatus.OK);
     }
     @DeleteMapping("/removeNews/{newsId}")

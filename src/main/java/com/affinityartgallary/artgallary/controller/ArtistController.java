@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("api/v1/artist")
@@ -15,8 +18,14 @@ public class ArtistController {
     @Autowired
     ArtistService artistService;
 
+//    @PostMapping("/addArtist")
+//    public String method(){
+//        return "am here";
+//    }
     @PostMapping("/addArtist")
-    public ResponseEntity<?> addArtist(@RequestBody AddArtistRequest addArtistRequest){
+    public ResponseEntity<?> addArtist(@ModelAttribute AddArtistRequest addArtistRequest
+                                       ) throws IOException {
+//        addArtistRequest.setImage(file);
         return new ResponseEntity<>(artistService.addArtist(addArtistRequest), HttpStatus.OK);
     }
 
@@ -31,7 +40,7 @@ public class ArtistController {
 
     }
     @PatchMapping("/updateArtist/{id}")
-    public ResponseEntity<?> updateArtist (@PathVariable ("id")String id, @RequestBody UpdateArtistRequest updateArtistRequest){
+    public ResponseEntity<?> updateArtist (@PathVariable ("id")String id, @ModelAttribute UpdateArtistRequest updateArtistRequest) throws IOException {
         return new ResponseEntity<>(artistService.updateArtistInformation(id,updateArtistRequest),HttpStatus.OK);
     }
     @DeleteMapping("/removeArtist/{artistName}")

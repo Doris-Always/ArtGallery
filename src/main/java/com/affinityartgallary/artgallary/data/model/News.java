@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
@@ -16,5 +17,5 @@ public class News {
     private String title;
     private String body;
     private Date date;
-    private String imageUrl;
+    private String image;
 }

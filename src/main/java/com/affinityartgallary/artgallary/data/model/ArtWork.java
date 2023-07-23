@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.web.multipart.MultipartFile;
 
 @Document
 @Builder
@@ -18,6 +19,6 @@ public class ArtWork {
     private String title;
     private String medium;
     private String dimension;
-    private String imageUrl;
+    private String image;
     private String artistId;
 }

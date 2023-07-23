@@ -10,18 +10,23 @@ import com.affinityartgallary.artgallary.dto.request.UpdateArtistRequest;
 import com.affinityartgallary.artgallary.exception.ArtistAlreadyExistException;
 import com.affinityartgallary.artgallary.exception.ArtistNotFoundException;
 import com.affinityartgallary.artgallary.services.ArtistService;
+import com.affinityartgallary.artgallary.services.FileUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 @Service
 public class ArtistServiceImpl implements ArtistService {
     @Autowired
     ArtistRepository artistRepository;
+    @Autowired
+    private FileUploadService fileUploadService;
     @Override
-    public Artist addArtist(AddArtistRequest addArtistRequest) {
+    public Artist addArtist(AddArtistRequest addArtistRequest) throws IOException {
        Optional<Artist> existingArtist = Optional.ofNullable(artistRepository.findByName(addArtistRequest.getName()));
         if (existingArtist.isPresent()){
             throw new ArtistAlreadyExistException("User already exist");
@@ -31,13 +36,16 @@ public class ArtistServiceImpl implements ArtistService {
         Artist artist = Artist.builder()
                 .name(addArtistRequest.getName())
                 .artistBio(addArtistRequest.getArtistBio())
-                .imageUrl(addArtistRequest.getImageUrl())
                 .yearOfBirth(addArtistRequest.getYearOfBirth())
-                .category(addArtistRequest.getCategory())
+//                .category(Category.valueOf(addArtistRequest.getCategory().toUpperCase()))
                 .artWorkList(new ArrayList<>())
                 .exhibitions(new ArrayList<>())
                 .build();
-                return artistRepository.save(artist);
+                Artist savedArtist = artistRepository.save(artist);
+                String imageUrl = fileUploadService.uploadFile(addArtistRequest.getImage(), savedArtist.getId());
+                 savedArtist.setImage(imageUrl);
+
+        return artistRepository.save(savedArtist);
 
     }
 
@@ -47,13 +55,15 @@ public class ArtistServiceImpl implements ArtistService {
     }
 
     @Override
-    public Artist updateArtistInformation(String id,UpdateArtistRequest updateArtist) {
+    public Artist updateArtistInformation(String id,UpdateArtistRequest updateArtist) throws IOException {
         Artist existingArtist = artistRepository.findById(id).orElseThrow(()->new ArtistNotFoundException("artist not found"));
         existingArtist.setName(updateArtist.getName() != null ? updateArtist.getName() : existingArtist.getName());
         existingArtist.setArtistBio(updateArtist.getArtistBio() != null ? updateArtist.getArtistBio() : existingArtist.getArtistBio());
-        existingArtist.setImageUrl(updateArtist.getImageUrl() != null ? updateArtist.getImageUrl() : existingArtist.getImageUrl());
+        String imageUrl = fileUploadService.uploadFile(updateArtist.getImage(), existingArtist.getId());
+        existingArtist.setImage(imageUrl);
+        existingArtist.setImage(updateArtist.getImage() != null ? imageUrl : existingArtist.getImage());
         existingArtist.setYearOfBirth(updateArtist.getYearOfBirth() != null ? updateArtist.getYearOfBirth() : existingArtist.getYearOfBirth());
-        existingArtist.setCategory(updateArtist.getCategory() != null ? updateArtist.getCategory() : existingArtist.getCategory());
+//        existingArtist.setCategory(updateArtist.getCategory() != null ? updateArtist.getCategory() : existingArtist.getCategory());
         return artistRepository.save(existingArtist);
     }
     @Override
@@ -79,4 +89,6 @@ public class ArtistServiceImpl implements ArtistService {
         Artist artist = artistRepository.findByName(artistName);
         artistRepository.delete(artist);
     }
+
+
 }

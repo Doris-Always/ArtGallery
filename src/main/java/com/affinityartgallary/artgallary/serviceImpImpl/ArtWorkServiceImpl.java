@@ -12,9 +12,12 @@ import com.affinityartgallary.artgallary.exception.ArtistAlreadyExistException;
 import com.affinityartgallary.artgallary.exception.ArtistNotFoundException;
 import com.affinityartgallary.artgallary.services.ArtWorkService;
 import com.affinityartgallary.artgallary.services.ArtistService;
+import com.affinityartgallary.artgallary.services.FileUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +31,11 @@ public class ArtWorkServiceImpl implements ArtWorkService {
     ArtWorkRepository artWorkRepository;
     @Autowired
     ArtistRepository artistRepository;
+
+    @Autowired
+    FileUploadService fileUploadService;
     @Override
-    public ArtWork addArtWorkToArtist(String artistName,AddArtWorkRequest addArtWorkRequest)  {
+    public ArtWork addArtWorkToArtist(String artistName,AddArtWorkRequest addArtWorkRequest) throws IOException {
         Artist existingArtist = artistService.getArtistByName(artistName);
         if (existingArtist.getName() == null){
            throw new ArtistNotFoundException("artist not found");
@@ -40,14 +46,17 @@ public class ArtWorkServiceImpl implements ArtWorkService {
         if (artWorkExists){
             throw new ArtistAlreadyExistException("artwork already exist");
         }
+
         ArtWork artWork = ArtWork.builder()
                 .medium(addArtWorkRequest.getMedium())
                 .dimension(addArtWorkRequest.getDimension())
                 .title(addArtWorkRequest.getTitle())
-                .imageUrl(addArtWorkRequest.getImageUrl())
                 .artistId(existingArtist.getId())
                 .build();
        ArtWork savedArtwork =  artWorkRepository.save(artWork);
+       String imageUrl = fileUploadService.uploadFile(addArtWorkRequest.getImage(),savedArtwork.getId());
+       savedArtwork.setImage(imageUrl);
+       artWorkRepository.save(savedArtwork);
        artWork.setId(savedArtwork.getId());
 
         existingArtist.getArtWorkList().add(artWork);
@@ -63,7 +72,7 @@ public class ArtWorkServiceImpl implements ArtWorkService {
     }
 
     @Override
-    public ArtWork updateArtWork(String artWorkId,UpdateArtWorkRequest updateArtWorkRequest) {
+    public ArtWork updateArtWork(String artWorkId,UpdateArtWorkRequest updateArtWorkRequest) throws IOException {
         ArtWork existingArtWork = artWorkRepository.findById(artWorkId).orElseThrow(()->new ArtWorkNotFoundException("artwork not found"));
         update(updateArtWorkRequest, existingArtWork);
         ArtWork updatedArtwork = artWorkRepository.save(existingArtWork);
@@ -72,7 +81,7 @@ public class ArtWorkServiceImpl implements ArtWorkService {
     }
 
 
-    private void updateArtWorkInArtist(String artWorkId, String artistId, UpdateArtWorkRequest updateArtWorkRequest) {
+    private void updateArtWorkInArtist(String artWorkId, String artistId, UpdateArtWorkRequest updateArtWorkRequest) throws IOException {
        Artist existingArtist = artistService.getArtistById(artistId);
        List<ArtWork> artWorks = existingArtist.getArtWorkList();
 
@@ -87,11 +96,17 @@ public class ArtWorkServiceImpl implements ArtWorkService {
 
     }
 
-    private void update(UpdateArtWorkRequest updateArtWorkRequest, ArtWork artWork) {
+    private void update(UpdateArtWorkRequest updateArtWorkRequest, ArtWork artWork) throws IOException {
         artWork.setTitle(updateArtWorkRequest.getTitle() != null ? updateArtWorkRequest.getTitle() : artWork.getTitle());
         artWork.setDimension(updateArtWorkRequest.getDimension() != null ? updateArtWorkRequest.getDimension() : artWork.getDimension());
         artWork.setMedium(updateArtWorkRequest.getMedium() != null ? updateArtWorkRequest.getMedium() : artWork.getMedium());
-        artWork.setImageUrl(updateArtWorkRequest.getImageUrl() != null ? updateArtWorkRequest.getImageUrl() : artWork.getImageUrl());
+
+        MultipartFile image = updateArtWorkRequest.getImage();
+        String imageUrl = (image != null && !image.isEmpty() ?
+                fileUploadService.uploadFile(updateArtWorkRequest.getImage(), artWork.getId()) : artWork.getImage());
+        artWork.setImage(imageUrl);
+
+
     }
 
     @Override

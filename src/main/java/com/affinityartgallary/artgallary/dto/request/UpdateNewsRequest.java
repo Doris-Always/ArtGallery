@@ -1,6 +1,7 @@
 package com.affinityartgallary.artgallary.dto.request;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
@@ -9,5 +10,5 @@ public class UpdateNewsRequest{
         private String title;
         private String body;
         private Date date;
-        private String imageUrl;
+        private MultipartFile image;
 }

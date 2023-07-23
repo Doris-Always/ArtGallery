@@ -13,9 +13,12 @@ import com.affinityartgallary.artgallary.exception.ExhibitionAlreadyExistExcepti
 import com.affinityartgallary.artgallary.exception.ExhibitionNotFoundException;
 import com.affinityartgallary.artgallary.services.ArtistService;
 import com.affinityartgallary.artgallary.services.ExhibitionService;
+import com.affinityartgallary.artgallary.services.FileUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,9 +28,11 @@ public class ExhibitionServiceImpl implements ExhibitionService {
     ArtistService artistService;
     @Autowired
     ExhibitionRepository exhibitionRepository;
+    @Autowired
+    FileUploadService fileUploadService;
 
     @Override
-    public Exhibition addExhibition(String artistId, AddExhibitionRequest addExhibitionRequest) {
+    public Exhibition addExhibition(String artistId, AddExhibitionRequest addExhibitionRequest) throws IOException {
         Artist existingArtist = artistService.getArtistById(artistId);
         boolean exhibitionExisting = existingArtist.getExhibitions().stream()
                 .anyMatch(exhibition -> exhibition.getExhibitionName().equals(addExhibitionRequest.getExhibitionName()));
@@ -36,13 +41,15 @@ public class ExhibitionServiceImpl implements ExhibitionService {
         }
         Exhibition exhibition = Exhibition.builder()
                 .exhibitionName(addExhibitionRequest.getExhibitionName())
-                .imageUrl(addExhibitionRequest.getImageUrl())
                 .year(addExhibitionRequest.getYear())
                 .location(addExhibitionRequest.getLocation())
                 .artistId(existingArtist.getId())
                 .build();
 
         Exhibition savedExhibition = exhibitionRepository.save(exhibition);
+        String imageUrl = fileUploadService.uploadFile(addExhibitionRequest.getImage(), savedExhibition.getId());
+        savedExhibition.setImage(imageUrl);
+        exhibitionRepository.save(savedExhibition);
         exhibition.setId(savedExhibition.getId());
         existingArtist.getExhibitions().add(exhibition);
         artistService.saveArtist(existingArtist);
@@ -57,7 +64,7 @@ public class ExhibitionServiceImpl implements ExhibitionService {
     }
 
     @Override
-    public Exhibition updateExhibition(String exhibitionId, UpdateExhibitionRequest updateExhibitionRequest) {
+    public Exhibition updateExhibition(String exhibitionId, UpdateExhibitionRequest updateExhibitionRequest) throws IOException {
         Exhibition existingExhibition = exhibitionRepository.findById(exhibitionId)
                 .orElseThrow(()->new ExhibitionNotFoundException("exhibition not found "));
         update(updateExhibitionRequest,existingExhibition);
@@ -89,7 +96,7 @@ public class ExhibitionServiceImpl implements ExhibitionService {
         artistService.saveArtist(existingArtist);
     }
 
-    private void updateExhibitionInArtist(String artistId, String exhibitionId, UpdateExhibitionRequest updateExhibitionRequest) {
+    private void updateExhibitionInArtist(String artistId, String exhibitionId, UpdateExhibitionRequest updateExhibitionRequest) throws IOException {
         Artist existingArtist = artistService.getArtistById(artistId);
         List<Exhibition> exhibitions = existingArtist.getExhibitions();
         for (Exhibition exhibition : exhibitions){
@@ -100,9 +107,15 @@ public class ExhibitionServiceImpl implements ExhibitionService {
         artistService.saveArtist(existingArtist);
     }
 
-    private void update(UpdateExhibitionRequest exhibitionRequest, Exhibition exhibition) {
+
+
+
+    private void update(UpdateExhibitionRequest exhibitionRequest, Exhibition exhibition) throws IOException {
         exhibition.setExhibitionName(exhibitionRequest.getExhibitionName() != null ? exhibitionRequest.getExhibitionName() : exhibition.getExhibitionName());
-        exhibition.setImageUrl(exhibitionRequest.getImageUrl() != null ? exhibitionRequest.getImageUrl() : exhibition.getImageUrl());
+        MultipartFile image = exhibitionRequest.getImage();
+        String imageUrl =(image != null && !image.isEmpty()) ?
+                fileUploadService.uploadFile(exhibitionRequest.getImage(), exhibition.getId()) : exhibition.getImage();
+        exhibition.setImage(imageUrl);
         exhibition.setLocation(exhibitionRequest.getLocation() != null ? exhibitionRequest.getLocation() : exhibition.getLocation());
         exhibition.setYear(exhibitionRequest.getYear() != null ? exhibitionRequest.getYear() : exhibition.getYear());
     }
