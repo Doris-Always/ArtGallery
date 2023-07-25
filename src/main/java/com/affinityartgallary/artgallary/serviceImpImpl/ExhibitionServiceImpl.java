@@ -1,14 +1,12 @@
 package com.affinityartgallary.artgallary.serviceImpImpl;
 
-import com.affinityartgallary.artgallary.data.model.ArtWork;
 import com.affinityartgallary.artgallary.data.model.Artist;
 import com.affinityartgallary.artgallary.data.model.Exhibition;
 import com.affinityartgallary.artgallary.data.repository.ExhibitionRepository;
 import com.affinityartgallary.artgallary.dto.request.AddExhibitionRequest;
-import com.affinityartgallary.artgallary.dto.request.UpdateArtWorkRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateExhibitionRequest;
-import com.affinityartgallary.artgallary.exception.ArtistAlreadyExistException;
-import com.affinityartgallary.artgallary.exception.ArtistNotFoundException;
+import com.affinityartgallary.artgallary.dto.response.AddExhibitionResponse;
+import com.affinityartgallary.artgallary.dto.response.UpdateExhibitionResponse;
 import com.affinityartgallary.artgallary.exception.ExhibitionAlreadyExistException;
 import com.affinityartgallary.artgallary.exception.ExhibitionNotFoundException;
 import com.affinityartgallary.artgallary.services.ArtistService;
@@ -32,7 +30,7 @@ public class ExhibitionServiceImpl implements ExhibitionService {
     FileUploadService fileUploadService;
 
     @Override
-    public Exhibition addExhibition(String artistId, AddExhibitionRequest addExhibitionRequest) throws IOException {
+    public AddExhibitionResponse addExhibition(String artistId, AddExhibitionRequest addExhibitionRequest) throws IOException {
         Artist existingArtist = artistService.getArtistById(artistId);
         boolean exhibitionExisting = existingArtist.getExhibitions().stream()
                 .anyMatch(exhibition -> exhibition.getExhibitionName().equals(addExhibitionRequest.getExhibitionName()));
@@ -53,7 +51,11 @@ public class ExhibitionServiceImpl implements ExhibitionService {
         exhibition.setId(savedExhibition.getId());
         existingArtist.getExhibitions().add(exhibition);
         artistService.saveArtist(existingArtist);
-        return savedExhibition;
+        AddExhibitionResponse addExhibitionResponse = new AddExhibitionResponse();
+        addExhibitionResponse.setId(savedExhibition.getId());
+        addExhibitionResponse.setExhibitionName(savedExhibition.getExhibitionName());
+        addExhibitionResponse.setArtistId(existingArtist.getId());
+        return addExhibitionResponse;
     }
 
     @Override
@@ -64,13 +66,16 @@ public class ExhibitionServiceImpl implements ExhibitionService {
     }
 
     @Override
-    public Exhibition updateExhibition(String exhibitionId, UpdateExhibitionRequest updateExhibitionRequest) throws IOException {
+    public UpdateExhibitionResponse updateExhibition(String exhibitionId, UpdateExhibitionRequest updateExhibitionRequest) throws IOException {
         Exhibition existingExhibition = exhibitionRepository.findById(exhibitionId)
                 .orElseThrow(()->new ExhibitionNotFoundException("exhibition not found "));
         update(updateExhibitionRequest,existingExhibition);
         Exhibition updatedExhibition = exhibitionRepository.save(existingExhibition);
         updateExhibitionInArtist(existingExhibition.getArtistId(),exhibitionId,updateExhibitionRequest);
-        return updatedExhibition;
+        UpdateExhibitionResponse updateExhibitionResponse = new UpdateExhibitionResponse();
+        updateExhibitionResponse.setExhibitionName(updatedExhibition.getExhibitionName());
+        updateExhibitionResponse.setId(updatedExhibition.getId());
+        return updateExhibitionResponse;
 
     }
 
@@ -124,5 +129,10 @@ public class ExhibitionServiceImpl implements ExhibitionService {
        var foundArtist = artistService.getArtistById(artistId);
         List<Exhibition> listOfExhibition = foundArtist.getExhibitions();
         return listOfExhibition;
+    }
+
+    @Override
+    public List<Exhibition> getAllExhibition() {
+        return exhibitionRepository.findAll();
     }
 }

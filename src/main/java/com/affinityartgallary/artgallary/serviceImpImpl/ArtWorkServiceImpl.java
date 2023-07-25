@@ -6,7 +6,8 @@ import com.affinityartgallary.artgallary.data.repository.ArtWorkRepository;
 import com.affinityartgallary.artgallary.data.repository.ArtistRepository;
 import com.affinityartgallary.artgallary.dto.request.AddArtWorkRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateArtWorkRequest;
-import com.affinityartgallary.artgallary.exception.ArtWorkAlreadyExistException;
+import com.affinityartgallary.artgallary.dto.response.AddArtWorkResponse;
+import com.affinityartgallary.artgallary.dto.response.UpdateArtWorkResponse;
 import com.affinityartgallary.artgallary.exception.ArtWorkNotFoundException;
 import com.affinityartgallary.artgallary.exception.ArtistAlreadyExistException;
 import com.affinityartgallary.artgallary.exception.ArtistNotFoundException;
@@ -35,7 +36,7 @@ public class ArtWorkServiceImpl implements ArtWorkService {
     @Autowired
     FileUploadService fileUploadService;
     @Override
-    public ArtWork addArtWorkToArtist(String artistName,AddArtWorkRequest addArtWorkRequest) throws IOException {
+    public AddArtWorkResponse addArtWorkToArtist(String artistName, AddArtWorkRequest addArtWorkRequest) throws IOException {
         Artist existingArtist = artistService.getArtistByName(artistName);
         if (existingArtist.getName() == null){
            throw new ArtistNotFoundException("artist not found");
@@ -62,7 +63,10 @@ public class ArtWorkServiceImpl implements ArtWorkService {
         existingArtist.getArtWorkList().add(artWork);
         artistService.saveArtist(existingArtist);
 
-        return savedArtwork;
+        AddArtWorkResponse addArtWorkResponse = new AddArtWorkResponse();
+        addArtWorkResponse.setArtistId(savedArtwork.getArtistId());
+        addArtWorkResponse.setId(artWork.getId());
+        return addArtWorkResponse;
 
     }
 
@@ -72,12 +76,15 @@ public class ArtWorkServiceImpl implements ArtWorkService {
     }
 
     @Override
-    public ArtWork updateArtWork(String artWorkId,UpdateArtWorkRequest updateArtWorkRequest) throws IOException {
+    public UpdateArtWorkResponse updateArtWork(String artWorkId, UpdateArtWorkRequest updateArtWorkRequest) throws IOException {
         ArtWork existingArtWork = artWorkRepository.findById(artWorkId).orElseThrow(()->new ArtWorkNotFoundException("artwork not found"));
         update(updateArtWorkRequest, existingArtWork);
         ArtWork updatedArtwork = artWorkRepository.save(existingArtWork);
         updateArtWorkInArtist(updatedArtwork.getId(), updatedArtwork.getArtistId(), updateArtWorkRequest);
-        return updatedArtwork;
+        UpdateArtWorkResponse updateArtWorkResponse = new UpdateArtWorkResponse();
+        updateArtWorkResponse.setId(updatedArtwork.getId());
+        updateArtWorkResponse.setTitle(updateArtWorkResponse.getTitle());
+        return updateArtWorkResponse;
     }
 
 
@@ -116,6 +123,11 @@ public class ArtWorkServiceImpl implements ArtWorkService {
         artWorkRepository.delete(existingArtWork);
         removeArtWorkFromArtist(artist,existingArtWork.getId());
 
+    }
+
+    @Override
+    public List<ArtWork> getAllArtWork() {
+        return artWorkRepository.findAll();
     }
 
     private void removeArtWorkFromArtist(String artistId,String artWorkId){

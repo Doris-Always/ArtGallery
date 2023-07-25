@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -59,6 +60,11 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public void removeNews(String newsId) {
         newsRepository.deleteById(newsId);
+    }
+
+    @Override
+    public List<News> getAllNews() {
+        return newsRepository.findAll();
     }
 
     private void update(UpdateNewsRequest updateNewsRequest,News news) throws IOException {

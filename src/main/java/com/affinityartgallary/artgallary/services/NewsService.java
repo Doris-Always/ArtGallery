@@ -5,6 +5,7 @@ import com.affinityartgallary.artgallary.dto.request.CreateNewsRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateNewsRequest;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface NewsService {
     News createNews(CreateNewsRequest newsRequest) throws IOException;
@@ -13,4 +14,6 @@ public interface NewsService {
     News updateNews(String newsId, UpdateNewsRequest updateNewsRequest) throws IOException;
 
     void removeNews(String newsId);
+
+    List<News> getAllNews();
 }

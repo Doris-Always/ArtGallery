@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -28,30 +29,30 @@ public class NewsServiceTest {
         newsRequest.setTitle("first news headline");
         newsRequest.setBody("this is news body");
 
-        newsRequest.setImageUrl("www.cloudinary.com");
+//        newsRequest.setImageUrl("www.cloudinary.com");
 
         updateNewsRequest = new UpdateNewsRequest();
         updateNewsRequest.setTitle("this is an updated title");
         updateNewsRequest.setBody("this is news body");
         updateNewsRequest.setDate(new Date(2023,7,19));
-        updateNewsRequest.setImageUrl("www.cloudinary.com");
+//        updateNewsRequest.setImageUrl("www.cloudinary.com");
 
 
     }
     @Test
-    void testThatNewsCanBeCreated(){
+    void testThatNewsCanBeCreated() throws IOException {
         News news = newsService.createNews(newsRequest);
         assertEquals(news.getTitle(),"first news headline");
     }
     @Test
-    void testThatNewsCanBeRetrievedById(){
+    void testThatNewsCanBeRetrievedById() throws IOException {
         News news = newsService.createNews(newsRequest);
         assertEquals(news.getTitle(),"first news headline");
         News foundNews = newsService.getNewsById(news.getId());
         assertEquals(news.getId(),foundNews.getId());
     }
     @Test
-    void testThatNewsCanBeUpdated(){
+    void testThatNewsCanBeUpdated() throws IOException {
         News news = newsService.createNews(newsRequest);
         assertEquals(news.getTitle(),"first news headline");
         News updatedNews = newsService.updateNews(news.getId(), updateNewsRequest);

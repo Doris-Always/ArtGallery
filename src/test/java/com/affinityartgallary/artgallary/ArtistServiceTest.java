@@ -3,11 +3,15 @@ package com.affinityartgallary.artgallary;
 import com.affinityartgallary.artgallary.data.model.Artist;
 import com.affinityartgallary.artgallary.dto.request.AddArtistRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateArtistRequest;
+import com.affinityartgallary.artgallary.dto.response.AddArtistResponse;
+import com.affinityartgallary.artgallary.dto.response.UpdaterArtistResponse;
 import com.affinityartgallary.artgallary.services.ArtistService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -21,7 +25,7 @@ public class ArtistServiceTest {
         addArtistRequest.setName("Ben");
         addArtistRequest.setYearOfBirth("1904");
         addArtistRequest.setArtistBio("the work is good");
-        addArtistRequest.setImageUrl("www.cloudinary.com");
+//        addArtistRequest.setImageUrl("www.cloudinary.com");
 
     }
 
@@ -30,34 +34,33 @@ public class ArtistServiceTest {
 
 
     @Test
-    void addOneArtistTestThatAnArtistExist(){
-        Artist artist =  artistService.addArtist(addArtistRequest);
+    void addOneArtistTestThatAnArtistExist() throws IOException {
+        AddArtistResponse artist =  artistService.addArtist(addArtistRequest);
         assertEquals(artist.getName(),addArtistRequest.getName());
-        assertEquals(artist.getArtistBio(),addArtistRequest.getArtistBio());
+        assertEquals(artist.getMessage(),"Ben added successfully");
     }
     @Test
-    void testThatICanFindAnArtistById(){
-        Artist artist =  artistService.addArtist(addArtistRequest);
+    void testThatICanFindAnArtistById() throws IOException {
+        AddArtistResponse artist =  artistService.addArtist(addArtistRequest);
         assertEquals(artist.getName(),addArtistRequest.getName());
-        assertEquals(artist.getArtistBio(),addArtistRequest.getArtistBio());
         var artistId = artist.getId();
         var addedArtist = artistService.getArtistById(artistId);
         assertEquals(artistId,addedArtist.getId());
     }
 
     @Test
-    void testThatAnArtistInformationCanBeUpdated(){
-        Artist artist =  artistService.addArtist(addArtistRequest);
+    void testThatAnArtistInformationCanBeUpdated() throws IOException {
+        AddArtistResponse artist =  artistService.addArtist(addArtistRequest);
         UpdateArtistRequest updateArtist = new UpdateArtistRequest();
         updateArtist.setName("Benny");
         updateArtist.setYearOfBirth("1234");
-        Artist updatedArtist = artistService.updateArtistInformation(artist.getId(), updateArtist);
+        UpdaterArtistResponse updatedArtist = artistService.updateArtistInformation(artist.getId(), updateArtist);
         assertEquals(artist.getId(),updatedArtist.getId());
 
     }
     @Test
-    void testThatAnArtistCanBeRemovedByName(){
-        Artist artist =  artistService.addArtist(addArtistRequest);
+    void testThatAnArtistCanBeRemovedByName() throws IOException {
+        AddArtistResponse artist =  artistService.addArtist(addArtistRequest);
         String artistName = artist.getName();
         artistService.removeArtistByName(artistName);
         assertNull(artistService.getArtistByName(artistName));

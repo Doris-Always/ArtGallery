@@ -2,11 +2,11 @@ package com.affinityartgallary.artgallary.serviceImpImpl;
 
 import com.affinityartgallary.artgallary.data.model.ArtWork;
 import com.affinityartgallary.artgallary.data.model.Artist;
-import com.affinityartgallary.artgallary.data.model.Category;
-import com.affinityartgallary.artgallary.data.model.Exhibition;
 import com.affinityartgallary.artgallary.data.repository.ArtistRepository;
 import com.affinityartgallary.artgallary.dto.request.AddArtistRequest;
 import com.affinityartgallary.artgallary.dto.request.UpdateArtistRequest;
+import com.affinityartgallary.artgallary.dto.response.AddArtistResponse;
+import com.affinityartgallary.artgallary.dto.response.UpdaterArtistResponse;
 import com.affinityartgallary.artgallary.exception.ArtistAlreadyExistException;
 import com.affinityartgallary.artgallary.exception.ArtistNotFoundException;
 import com.affinityartgallary.artgallary.services.ArtistService;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 @Service
 public class ArtistServiceImpl implements ArtistService {
@@ -26,7 +25,7 @@ public class ArtistServiceImpl implements ArtistService {
     @Autowired
     private FileUploadService fileUploadService;
     @Override
-    public Artist addArtist(AddArtistRequest addArtistRequest) throws IOException {
+    public AddArtistResponse addArtist(AddArtistRequest addArtistRequest) throws IOException {
        Optional<Artist> existingArtist = Optional.ofNullable(artistRepository.findByName(addArtistRequest.getName()));
         if (existingArtist.isPresent()){
             throw new ArtistAlreadyExistException("User already exist");
@@ -42,12 +41,16 @@ public class ArtistServiceImpl implements ArtistService {
                 .exhibitions(new ArrayList<>())
                 .build();
                 Artist savedArtist = artistRepository.save(artist);
+
                 String imageUrl = fileUploadService.uploadFile(addArtistRequest.getImage(), savedArtist.getId());
                  savedArtist.setImage(imageUrl);
-
-        return artistRepository.save(savedArtist);
-
+                 artistRepository.save(savedArtist);
+        AddArtistResponse addArtistResponse = new AddArtistResponse();
+        addArtistResponse.setId(savedArtist.getId());
+        addArtistResponse.setName(savedArtist.getName());
+        return addArtistResponse;
     }
+
 
     @Override
     public Artist getArtistById(String artistId) {
@@ -55,16 +58,21 @@ public class ArtistServiceImpl implements ArtistService {
     }
 
     @Override
-    public Artist updateArtistInformation(String id,UpdateArtistRequest updateArtist) throws IOException {
+    public UpdaterArtistResponse updateArtistInformation(String id, UpdateArtistRequest updateArtist) throws IOException {
         Artist existingArtist = artistRepository.findById(id).orElseThrow(()->new ArtistNotFoundException("artist not found"));
         existingArtist.setName(updateArtist.getName() != null ? updateArtist.getName() : existingArtist.getName());
         existingArtist.setArtistBio(updateArtist.getArtistBio() != null ? updateArtist.getArtistBio() : existingArtist.getArtistBio());
+
         String imageUrl = fileUploadService.uploadFile(updateArtist.getImage(), existingArtist.getId());
         existingArtist.setImage(imageUrl);
         existingArtist.setImage(updateArtist.getImage() != null ? imageUrl : existingArtist.getImage());
         existingArtist.setYearOfBirth(updateArtist.getYearOfBirth() != null ? updateArtist.getYearOfBirth() : existingArtist.getYearOfBirth());
-//        existingArtist.setCategory(updateArtist.getCategory() != null ? updateArtist.getCategory() : existingArtist.getCategory());
-        return artistRepository.save(existingArtist);
+        artistRepository.save(existingArtist);
+
+        UpdaterArtistResponse updaterArtistResponse = new UpdaterArtistResponse();
+        updaterArtistResponse.setId(existingArtist.getId());
+        updaterArtistResponse.setMessage(existingArtist.getName() + "" + "updated successfully");
+        return updaterArtistResponse;
     }
     @Override
     public Artist getArtistByName(String artistName){
@@ -81,6 +89,11 @@ public class ArtistServiceImpl implements ArtistService {
         var foundArtist = artistRepository.findById(artistId).orElseThrow(()->new ArtistNotFoundException("artist does not exist"));
        List<ArtWork> listOfArtWorks = foundArtist.getArtWorkList();
        return listOfArtWorks;
+    }
+
+    @Override
+    public List<Artist> getAllArtist() {
+        return artistRepository.findAll();
     }
 
 
